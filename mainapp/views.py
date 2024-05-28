@@ -6,7 +6,9 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models import Count
 
-from .forms import WorkoutForm, FitnessGoalForm, FitnessRecordForm, FitnessGoalSelectionForm, ActivityForm, CommentForm
+from .forms import WorkoutForm, FitnessGoalForm, FitnessRecordForm, FitnessGoalSelectionForm, ActivityForm, CommentForm, \
+    HelpForm
+
 from .models import Workout, FitnessGoal, CompletedGoals, Activity, UserLiked, SendNotif, Badge, Achievement, Friendship
 
 
@@ -357,3 +359,28 @@ def achievements(request):
     return render(request, 'achievements.html',
                   {'workout_badge': workout_badge, 'goal_badge': goal_badge, 'post_badge': post_badge,
                    'comments_badge': comments_badge})
+
+
+def help_page(request):
+    return render(request, 'faq.html')
+
+
+def submit_request(request):
+    if request.method == "POST":
+        form = HelpForm(request.POST)
+        if form.is_valid():
+            submission = form.save(commit=False)
+            submission.user = request.user
+            submission.save()
+            subject = 'Request ticket'
+            message = (f"You have received new request ticket from {request.user.username}. "
+                       f"Title: {submission.title}. "
+                       f"Description: {submission.description}. "
+                       f"Contact info: {request.user.email}")
+            from_email = settings.EMAIL_HOST_USER
+            recipient_list = ['mezu4a@gmail.com']
+            send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+            return redirect('home')
+    else:
+        form = HelpForm()
+    return render(request, 'request_form.html', {'form': form})

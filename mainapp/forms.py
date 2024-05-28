@@ -1,5 +1,5 @@
 from django import forms
-from .models import Workout, Activity, Comment, CompletedGoals
+from .models import Workout, Activity, Comment, CompletedGoals, Help
 from .models import FitnessGoal
 
 
@@ -44,3 +44,9 @@ class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
         fields = ['comment_text']
+
+
+class HelpForm(forms.ModelForm):
+    class Meta:
+        model = Help
+        fields = ['title', 'description']
