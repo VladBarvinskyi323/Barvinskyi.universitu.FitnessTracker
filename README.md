@@ -96,7 +96,7 @@ Week 9 (04/24 - 05/01):
 - Write unit tests for social integration functionalities
 
 
-## Anti-Lab 2
+## Anti-Lab2
 - Name: Kateryna Baryliuk
 - Project: https://github.com/kkkkkkkkatya/Baryliuk.University.OnlineBookClub
 - Fork: https://github.com/kkkkkkkkatya/Barvinskyi.universitu.FitnessTracker
