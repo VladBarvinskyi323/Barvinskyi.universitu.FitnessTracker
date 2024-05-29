@@ -6,7 +6,9 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models import Count
 
-from .forms import WorkoutForm, FitnessGoalForm, FitnessRecordForm, FitnessGoalSelectionForm, ActivityForm, CommentForm
+from .forms import WorkoutForm, FitnessGoalForm, FitnessRecordForm, FitnessGoalSelectionForm, ActivityForm, CommentForm, \
+    HelpForm
+
 from .models import Workout, FitnessGoal, CompletedGoals, Activity, UserLiked, SendNotif, Badge, Achievement, Friendship
 
 
@@ -83,28 +85,19 @@ def home(request):
 
 def profile(request):
     user = request.user
-    completed_goals_count = CompletedGoals.objects.filter(user=user).count()
-    activities_count = Activity.objects.filter(user=user).count()
-    workouts_count = Workout.objects.filter(user=user).count()
-    badges = Badge.objects.filter(user=user).values('badge_type').annotate(count=Count('id'))
-
-    username = None
-    if request.user.is_authenticated:
-        username = request.user.username
+    context = {
+        'username': user.username if user.is_authenticated else None,
+        'completed_goals_count': CompletedGoals.objects.filter(user=user).count(),
+        'activities_count': Activity.objects.filter(user=user).count(),
+        'workouts_count': Workout.objects.filter(user=user).count(),
+        'badges': Badge.objects.filter(user=user).values('badge_type').annotate(count=Count('id'))
+    }
 
     send_notif, created = SendNotif.objects.get_or_create(user=user)
     if send_notif.accept_notif:
-        return render(request, "profile_content.html", {'username': username, 'send_notif': send_notif,
-                                                        'completed_goals_count': completed_goals_count,
-                                                        'activities_count': activities_count,
-                                                        'workouts_count': workouts_count,
-                                                        'badges': badges})
-    else:
-        return render(request, "profile_content.html", {'username': username,
-                                                        'completed_goals_count': completed_goals_count,
-                                                        'activities_count': activities_count,
-                                                        'workouts_count': workouts_count,
-                                                        'badges': badges})
+        context['send_notif'] = send_notif
+
+    return render(request, "profile_content.html", context)
 
 
 def other_profile(request, user_id):
@@ -157,20 +150,18 @@ def welcome_email(request):
 
 
 def register_workout(request):
-    if request.method == 'POST':
-        form = WorkoutForm(request.POST)
-        if form.is_valid():
-            workout = form.save(commit=False)
-            workout.user = request.user
-            workout.save()
-            achievements, _ = Achievement.objects.get_or_create(user=request.user)
-            achievements.workouts_num += 1
-            achievements.save()
-            update_achievements(request.user)
-            return redirect('home')
-    else:
-        form = WorkoutForm()
+    form = WorkoutForm(request.POST or None)
+    if form.is_valid():
+        workout = form.save(commit=False)
+        workout.user = request.user
+        workout.save()
+        achievements, _ = Achievement.objects.get_or_create(user=request.user)
+        achievements.workouts_num += 1
+        achievements.save()
+        update_achievements(request.user)
+        return redirect('home')
     return render(request, 'register_workout.html', {'form': form})
+
 
 
 def workout_logs(request):
@@ -201,73 +192,78 @@ def workout_logs(request):
 
 
 def create_fitness_goal(request):
-    if request.method == 'POST':
-        form = FitnessGoalForm(request.POST)
-        if form.is_valid():
-            fitness_goal = form.save(commit=False)
-            fitness_goal.user = request.user
-            fitness_goal.save()
-            return redirect('profile')
-    else:
-        form = FitnessGoalForm()
+    form = FitnessGoalForm(request.POST or None)
+    if form.is_valid():
+        fitness_goal = form.save(commit=False)
+        fitness_goal.user = request.user
+        fitness_goal.save()
+        return redirect('profile')
     return render(request, 'set_goal.html', {'form': form})
 
 
+
 def choose_goal(request):
-    if request.method == 'POST':
-        form = FitnessGoalSelectionForm(request.POST)
-        if form.is_valid():
-            selected_goal_id = form.cleaned_data['goal'].id
-            return redirect('log_goal_record', goal_id=selected_goal_id)
-    else:
-        form = FitnessGoalSelectionForm()
+    form = FitnessGoalSelectionForm(request.POST or None)
+    if form.is_valid():
+        selected_goal_id = form.cleaned_data['goal'].id
+        return redirect('log_goal_record', goal_id=selected_goal_id)
     return render(request, 'select_goal.html', {'form': form})
 
 
 def log_goal_record(request, goal_id):
     fitness_goal = get_object_or_404(FitnessGoal, id=goal_id, user=request.user)
+
     if request.method == 'POST':
         form = FitnessRecordForm(request.POST)
         if form.is_valid():
             achieved_value = form.cleaned_data['achieved_value']
             fitness_goal.achieved_value += achieved_value
+
             if fitness_goal.achieved_value >= fitness_goal.target_value:
-                completed_goal = CompletedGoals.objects.create(
-                    user=request.user,
-                    goal_type=fitness_goal.goal_type,
-                    description=fitness_goal.description,
-                    target_value=fitness_goal.target_value,
-                    achieved_value=fitness_goal.achieved_value
-                )
-                achievements, _ = Achievement.objects.get_or_create(user=request.user)
-                achievements.goals_num += 1
-                achievements.save()
-                update_achievements(request.user)
-                fitness_goal.delete()
-                notif_obj, created = SendNotif.objects.get_or_create(user=request.user)
-                if notif_obj.accept_notif:
-                    user = request.user
-                    subject = 'Congratulations!'
-                    message = f"{user.username}, you've completed your goal: {fitness_goal.description}. Keep going!"
-                    from_email = settings.EMAIL_HOST_USER
-                    recipient_list = [user.email]
-                    send_mail(subject, message, from_email, recipient_list, fail_silently=False)
-                    count = CompletedGoals.objects.count()
-                    if count % 5 == 0 and count != 0:
-                        subject = 'Congratulations!'
-                        message = (
-                            f"{user.username}, you've completed your {count}th goal: {fitness_goal.description}. "
-                            f"Keep going!")
-                        from_email = settings.EMAIL_HOST_USER
-                        recipient_list = [user.email]
-                        send_mail(subject, message, from_email, recipient_list, fail_silently=False)
-                    return redirect('profile')
+                complete_goal(request.user, fitness_goal)
                 return redirect('profile')
+
             fitness_goal.save()
             return redirect('profile')
     else:
         form = FitnessRecordForm()
+
     return render(request, 'log_goal.html', {'form': form})
+
+def complete_goal(user, fitness_goal):
+    CompletedGoals.objects.create(
+        user=user,
+        goal_type=fitness_goal.goal_type,
+        description=fitness_goal.description,
+        target_value=fitness_goal.target_value,
+        achieved_value=fitness_goal.achieved_value
+    )
+
+    achievements, _ = Achievement.objects.get_or_create(user=user)
+    achievements.goals_num += 1
+    achievements.save()
+    update_achievements(user)
+    fitness_goal.delete()
+
+    notif_obj, _ = SendNotif.objects.get_or_create(user=user)
+    if notif_obj.accept_notif:
+        send_completion_email(user, fitness_goal)
+
+def send_completion_email(user, fitness_goal):
+    subject = 'Congratulations!'
+    message = f"{user.username}, you've completed your goal: {fitness_goal.description}. Keep going!"
+    from_email = settings.EMAIL_HOST_USER
+    recipient_list = [user.email]
+    send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+
+    completed_goal_count = CompletedGoals.objects.count()
+    if completed_goal_count % 5 == 0 and completed_goal_count != 0:
+        milestone_subject = 'Congratulations!'
+        milestone_message = (
+            f"{user.username}, you've completed your {completed_goal_count}th goal: {fitness_goal.description}. "
+            "Keep going!"
+        )
+        send_mail(milestone_subject, milestone_message, from_email, recipient_list, fail_silently=False)
 
 
 def completed_goal(request):
@@ -275,41 +271,36 @@ def completed_goal(request):
 
 
 def create_activity(request):
-    if request.method == 'POST':
-        form = ActivityForm(request.user, request.POST)
-        if form.is_valid():
-            activity = form.save(commit=False)
-            activity.user = request.user
-            completed_goal = form.cleaned_data['completed_goal']
-            activity.completed_goal = completed_goal
-            activity.save()
-            achievements, _ = Achievement.objects.get_or_create(user=request.user)
-            achievements.posts_num += 1
-            achievements.save()
-            update_achievements(request.user)
-            return redirect('home')  # Redirect to the homepage after creating activity
-    else:
-        form = ActivityForm(request.user)
+    form = ActivityForm(request.user, request.POST or None)
+    if form.is_valid():
+        activity = form.save(commit=False)
+        activity.user = request.user
+        activity.completed_goal = form.cleaned_data['completed_goal']
+        activity.save()
+        achievements, _ = Achievement.objects.get_or_create(user=request.user)
+        achievements.posts_num += 1
+        achievements.save()
+        update_achievements(request.user)
+        return redirect('home')
     return render(request, 'create_activity.html', {'form': form})
+
 
 
 def add_comment(request, activity_id):
     activity = Activity.objects.get(pk=activity_id)
-    if request.method == 'POST':
-        form = CommentForm(request.POST)
-        if form.is_valid():
-            comment = form.save(commit=False)
-            comment.user = request.user
-            comment.activity = activity
-            comment.save()
-            achievements, _ = Achievement.objects.get_or_create(user=request.user)
-            achievements.comments_num += 1
-            achievements.save()
-            update_achievements(request.user)
-            return redirect('home')
-    else:
-        form = CommentForm()
+    form = CommentForm(request.POST or None)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.user = request.user
+        comment.activity = activity
+        comment.save()
+        achievements, _ = Achievement.objects.get_or_create(user=request.user)
+        achievements.comments_num += 1
+        achievements.save()
+        update_achievements(request.user)
+        return redirect('home')
     return render(request, 'homepage.html', {'form': form})
+
 
 
 def like_activity(request, activity_id):
@@ -357,3 +348,28 @@ def achievements(request):
     return render(request, 'achievements.html',
                   {'workout_badge': workout_badge, 'goal_badge': goal_badge, 'post_badge': post_badge,
                    'comments_badge': comments_badge})
+
+
+def help_page(request):
+    return render(request, 'faq.html')
+
+
+def submit_request(request):
+    if request.method == "POST":
+        form = HelpForm(request.POST)
+        if form.is_valid():
+            submission = form.save(commit=False)
+            submission.user = request.user
+            submission.save()
+            subject = 'Request ticket'
+            message = (f"You have received new request ticket from {request.user.username}. "
+                       f"Title: {submission.title}. "
+                       f"Description: {submission.description}. "
+                       f"Contact info: {request.user.email}")
+            from_email = settings.EMAIL_HOST_USER
+            recipient_list = ['mezu4a@gmail.com']
+            send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+            return redirect('home')
+    else:
+        form = HelpForm()
+    return render(request, 'request_form.html', {'form': form})

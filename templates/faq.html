@@ -1,0 +1,142 @@
+{% extends 'homepage.html' %}
+{% load static %}
+
+{% block content %}
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Frequently Asked Questions (FAQ) - Workout</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap" rel="stylesheet">
+    <style>
+        h1 {
+            font-size: 28px;
+            color: #333333;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .submit-question {
+            display: block;
+            text-align: center;
+            font-size: 16px;
+            color: #ffffff;
+            background-color: #666666;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 3px;
+            transition: background-color 0.3s, color 0.3s;
+            margin-bottom: 30px;
+            width: 200px;
+            margin: 0 auto;
+        }
+
+        .submit-question:hover {
+            background-color: #444444;
+            color: #ffffff;
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .toc {
+            width: 100%;
+            margin-bottom: 40px;
+        }
+
+        .toc h2 {
+            font-size: 20px;
+            border-bottom: 1px solid #cccccc;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .toc ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .toc ul li {
+            margin: 10px 0;
+        }
+
+        .toc ul li a {
+            text-decoration: none;
+            color: #666666;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        .toc ul li a:hover {
+            color: #333333;
+        }
+
+        .faq {
+            width: 100%;
+        }
+
+        .faq h2 {
+            font-size: 20px;
+            border-bottom: 1px solid #cccccc;
+            padding-bottom: 10px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        .faq p {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .faq a {
+            display: inline-block;
+            margin-top: 10px;
+            text-decoration: none;
+            color: #666666;
+            font-size: 14px;
+        }
+
+        .faq a:hover {
+            color: #333333;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Frequently Asked Questions (FAQ) - Workout</h1>
+        <a href="{% url 'submit_request' %}" class="submit-question">Submit a request ticket</a>
+        <div class="content">
+            <div class="toc">
+                <h2>Content</h2>
+                <ul>
+                    <li><a href="#q1">What is a good beginner workout plan?</a></li>
+                    <li><a href="#q2">How often should I work out?</a></li>
+                    <li><a href="#q3">What should I eat before and after a workout?</a></li>
+                    <li><a href="#q4">How can I prevent injuries?</a></li>
+                </ul>
+            </div>
+            <div class="faq">
+                <h2 id="q1">What is a good beginner workout plan?</h2>
+                <p>A good beginner workout plan typically includes a mix of cardiovascular exercises, strength training, and flexibility exercises. Start with light to moderate intensity and gradually increase the intensity and duration as your fitness improves.</p>
+                <a href="#top">Back</a>
+
+                <h2 id="q2">How often should I work out?</h2>
+                <p>It's generally recommended to get at least 150 minutes of moderate aerobic activity or 75 minutes of vigorous activity per week, along with strength training exercises at least twice a week. However, listen to your body and adjust as needed.</p>
+                <a href="#top">Back</a>
+                <h2 id="q3">What should I eat before and after a workout?</h2>
+                <p>Before a workout, eat a small meal or snack that includes carbohydrates and protein about 1-2 hours before. After a workout, refuel with a meal that includes protein, carbohydrates, and healthy fats within 2 hours to help repair and rebuild muscles.</p>
+                <a href="#top">Back</a>
+
+                <h2 id="q4">How can I prevent injuries?</h2>
+                <p>To prevent injuries, warm up before exercising, use proper form, don't overdo it, and listen to your body. Also, ensure you have appropriate gear and equipment, and cool down and stretch after your workout.</p>
+                <a href="#top">Back</a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
+{% endblock %}

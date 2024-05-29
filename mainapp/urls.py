@@ -21,4 +21,6 @@ urlpatterns = [
     path('like/<int:activity_id>/', views.like_activity, name='like_activity'),
     path('toggle-notification/', views.toggle_notification_setting, name='toggle_notification_setting'),
     path('achievements/', views.achievements, name='achievements'),
+    path('help/', views.help_page, name='help_page'),
+    path('submit_request/', views.submit_request, name='submit_request'),
 ]
