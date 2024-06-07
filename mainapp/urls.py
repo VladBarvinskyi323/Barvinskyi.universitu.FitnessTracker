@@ -1,6 +1,24 @@
 from django.urls import path, include
-from . import views
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework import permissions
 
+from . import views
+from .api_views import api_home, api_profile, api_other_profile, api_friends_list, api_workout_logs, api_achievements, \
+    api_help_page
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Fitness Tracker API",
+        default_version='v1',
+        description="Track your fitness progress.",
+        terms_of_service="https://www.google.com/policies/terms/",
+        contact=openapi.Contact(email="mezu4a@gmail.com"),
+        license=openapi.License(name="BSD License"),
+    ),
+    public=True,
+    permission_classes=([permissions.IsAuthenticated]),
+)
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -23,4 +41,12 @@ urlpatterns = [
     path('achievements/', views.achievements, name='achievements'),
     path('help/', views.help_page, name='help_page'),
     path('submit_request/', views.submit_request, name='submit_request'),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('api/home/', api_home, name='api_home'),
+    path('api/profile/', api_profile, name='api_profile'),
+    path('api/profile/<int:user_id>/', api_other_profile, name='api_other_profile'),
+    path('api/friends/', api_friends_list, name='api_friends_list'),
+    path('api/workout_logs/', api_workout_logs, name='api_workout_logs'),
+    path('api/achievements/', api_achievements, name='api_achievements'),
+    path('api/help/', api_help_page, name='api_help_page'),
 ]
