@@ -95,7 +95,6 @@ Week 9 (04/24 - 05/01):
 - Implement backend logic for handling social interactions ✔️
 - Write unit tests for social integration functionalities
 
-
 Week 10 (05/01 - 05/08):
 - Implement feature: Sleep Tracking for monitoring sleep patterns
 - Integrate sleep tracking with user profiles
@@ -110,10 +109,14 @@ Week 11 (05/08 - 05/15):
 - Enable user interactions within challenge groups
 - Write unit tests for community challenge functionalities
 
-
 Week 12 (05/15 - 05/22):
 - Implement feature: Support Center for user assistance ✔️
 - Design UI for accessing support resources and FAQs ✔️
 - Implement backend logic for handling user queries and issues ✔️
 - Integrate live chat or ticketing system for user support ✔️
 - Write unit tests for support center functionalities
+
+## Anti-Lab2
+- Name: Kateryna Baryliuk
+- Project: https://github.com/kkkkkkkkatya/Baryliuk.University.OnlineBookClub
+- Fork: https://github.com/kkkkkkkkatya/Barvinskyi.universitu.FitnessTracker
