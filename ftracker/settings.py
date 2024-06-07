@@ -1,5 +1,7 @@
 from pathlib import Path
 import os
+
+import django_on_heroku
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -108,6 +110,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -148,3 +151,5 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'vebvebenko@gmail.com'
 EMAIL_HOST_PASSWORD = passwrd
 EMAIL_USE_TLS = True
+
+django_on_heroku.settings(locals())
